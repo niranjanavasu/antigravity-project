@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodDelivery - Best Food Ordering App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .restaurant-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .restaurant-info {
+            padding: 16px;
+        }
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+        .rating {
+            background-color: var(--success-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <span style="font-size: 2rem;">🍔</span> FoodDelivery
+            </a>
+            <div class="nav-links">
+                <!-- Injected by app.js -->
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <h1>Hungry?</h1>
+            <p>Order food from favourite restaurants near you.</p>
+            <div class="search-bar">
+                <input type="text" id="search-input" class="search-input" placeholder="Search for restaurant, cuisine or a dish">
+                <button class="btn btn-primary" onclick="filterRestaurants()">Search</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2 style="margin-bottom: 24px;">Top Restaurants</h2>
+        <div id="restaurant-grid" class="grid grid-3">
+            <!-- Restaurants injected here -->
+        </div>
+    </main>
+
+    <script src="scripts/data.js"></script>
+    <script src="scripts/app.js"></script>
+    <script>
+        function renderRestaurants(restaurants) {
+            const grid = document.getElementById('restaurant-grid');
+            grid.innerHTML = restaurants.map(r => `
+                <div class="card restaurant-card" onclick="viewRestaurant('${r.id}')" style="cursor: pointer;">
+                    <img src="${r.image}" alt="${r.name}">
+                    <div class="restaurant-info">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>${r.name}</h3>
+                            <span class="rating">★ ${r.rating}</span>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-top: 4px;">${r.cuisine}</p>
+                        <div class="meta">
+                            <span>${r.time}</span>
+                            <span>Delivery: Free</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initial Render
+        renderRestaurants(Data.getRestaurants());
+
+        function filterRestaurants() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const all = Data.getRestaurants();
+            const filtered = all.filter(r => 
+                r.name.toLowerCase().includes(query) || 
+                r.cuisine.toLowerCase().includes(query)
+            );
+            renderRestaurants(filtered);
+        }
+
+        function viewRestaurant(id) {
+            // Simple query param navigation
+            window.location.href = `restaurant.html?id=${id}`;
+        }
+    </script>
+</body>
+</html>

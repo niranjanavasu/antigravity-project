@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant - FoodDelivery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .restaurant-header {
+            background: white;
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 32px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .header-img {
+            width: 150px;
+            height: 150px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+        }
+
+        .item-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            background: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+        }
+
+        .item-info h3 {
+            margin-bottom: 8px;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .item-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 4px;
+            max-width: 400px;
+        }
+
+        .item-action {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .item-img {
+            width: 120px;
+            height: 100px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <span style="font-size: 2rem;">🍔</span> FoodDelivery
+            </a>
+            <div class="nav-links">
+                <!-- Injected by app.js -->
+            </div>
+        </div>
+    </nav>
+
+    <div id="restaurant-content">
+        <!-- Injected here -->
+    </div>
+
+    <main class="container">
+        <h2>Menu</h2>
+        <br>
+        <div id="menu-list">
+            <!-- Items injected here -->
+        </div>
+    </main>
+
+    <script src="scripts/data.js"></script>
+    <script src="scripts/app.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const rid = params.get('id');
+        const restaurant = Data.getRestaurants().find(r => r.id === rid);
+
+        if (!restaurant) {
+            document.body.innerHTML = '<div class="container"><h2>Restaurant not found</h2><a href="index.html">Go Home</a></div>';
+        } else {
+            // Render Header
+            document.getElementById('restaurant-content').innerHTML = `
+                <div class="restaurant-header">
+                    <div class="container header-content">
+                        <img src="${restaurant.image}" alt="${restaurant.name}" class="header-img">
+                        <div>
+                            <h1 style="font-size: 2.5rem;">${restaurant.name}</h1>
+                            <p style="font-size: 1.1rem; opacity: 0.8;">${restaurant.cuisine}</p>
+                            <div style="display: flex; gap: 16px; margin-top: 12px;">
+                                <span class="badge" style="font-size: 1rem; padding: 4px 12px;">★ ${restaurant.rating}</span>
+                                <span>${restaurant.time}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Render Menu
+            document.getElementById('menu-list').innerHTML = restaurant.items.map(item => `
+                <div class="item-card">
+                    <div class="item-info">
+                        <h3>${item.name}</h3>
+                        <div class="item-price">${formatPrice(item.price)}</div>
+                        <p class="item-desc">${item.desc}</p>
+                    </div>
+                    <div class="item-action">
+                        <img src="${item.image}" alt="${item.name}" class="item-img">
+                        <button class="btn btn-primary" onclick="addToCart('${item.id}')">ADD</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(itemId) {
+            const item = restaurant.items.find(i => i.id === itemId);
+            if (item) {
+                Data.addToCart({
+                    ...item,
+                    restaurantId: restaurant.id,
+                    restaurantName: restaurant.name
+                });
+                alert('Added to cart!');
+            }
+        }
+    </script>
+</body>
+
+</html>

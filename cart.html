@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - FoodDelivery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <span style="font-size: 2rem;">🍔</span> FoodDelivery
+            </a>
+            <div class="nav-links">
+                <!-- Injected by app.js -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="container" style="max-width: 800px; margin-top: 40px;">
+        <h2 style="margin-bottom: 24px;">Your Cart</h2>
+
+        <div id="cart-container">
+            <!-- Cart Items -->
+        </div>
+
+        <div id="order-confirm"
+            style="display:none; text-align: center; padding: 40px; background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
+            <h2 style="color: var(--success-color);">Order Placed Successfully!</h2>
+            <p style="margin: 16px 0;">Your order is on its way.</p>
+            <a href="orders.html" class="btn btn-primary">Track Order</a>
+        </div>
+    </main>
+
+    <script src="scripts/data.js"></script>
+    <script src="scripts/app.js"></script>
+    <script>
+        function renderCart() {
+            const cart = Data.getCart();
+            const container = document.getElementById('cart-container');
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 0;">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png" width="120" style="opacity: 0.5; margin-bottom: 20px;">
+                        <h3>Your cart is empty</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 24px;">You can go to home page to view more restaurants</p>
+                        <a href="index.html" class="btn btn-primary">See Restaurants</a>
+                    </div>
+                `;
+                return;
+            }
+
+            const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+            container.innerHTML = `
+                <div class="card" style="padding: 24px;">
+                    ${cart.map(item => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #eee;">
+                            <div style="display: flex; gap: 16px; align-items: center;">
+                                <img src="${item.image}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
+                                <div>
+                                    <h4 style="margin-bottom: 4px;">${item.name}</h4>
+                                    <span style="font-size: 0.9rem; color: var(--text-secondary);">₹${item.price} x ${item.qty}</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <span style="font-weight: 600;">₹${item.price * item.qty}</span>
+                                <button onclick="Data.removeFromCart('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px; color: var(--error-color); border-color: #ffebee;">Remove</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                    
+                    <div style="margin-top: 24px; padding-top: 24px; border-top: 2px dashed #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="color: var(--text-secondary);">Total to pay</span>
+                            <div style="font-size: 1.5rem; font-weight: 700;">₹${total}</div>
+                        </div>
+                        <button onclick="placeOrder()" class="btn btn-primary" style="padding: 12px 32px; font-size: 1.1rem;">Place Order</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function placeOrder() {
+            const user = Data.getUser();
+            if (!user) {
+                alert('Please login to place order');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const cart = Data.getCart();
+            const order = {
+                id: 'ORD-' + Math.floor(Math.random() * 10000),
+                date: new Date().toLocaleDateString(),
+                status: 'Pending',
+                total: cart.reduce((acc, item) => acc + (item.price * item.qty), 0),
+                items: cart,
+                user: user.name
+            };
+
+            const orders = Data.getOrders();
+            orders.unshift(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+
+            Data.clearCart();
+            document.getElementById('cart-container').style.display = 'none';
+            document.getElementById('order-confirm').style.display = 'block';
+        }
+
+        renderCart();
+        window.addEventListener('cart-updated', renderCart);
+    </script>
+</body>
+
+</html>

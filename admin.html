@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - FoodDelivery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: white;
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 12px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+
+        .sidebar-link.active {
+            background: #fff3e0;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: var(--radius-md);
+            width: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <h2 style="color: var(--primary-color); margin-bottom: 32px;">Admin Panel</h2>
+            <div class="sidebar-link active" onclick="showTab('orders')">Orders</div>
+            <div class="sidebar-link" onclick="showTab('menu')">Menu Management</div>
+            <div class="sidebar-link" onclick="Data.logout()" style="margin-top: auto; color: var(--error-color);">
+                Logout</div>
+        </aside>
+
+        <main class="main-content">
+            <div id="orders-tab">
+                <div class="section-header">
+                    <h2>Manage Orders</h2>
+                </div>
+                <div id="admin-orders-list"></div>
+            </div>
+
+            <div id="menu-tab" style="display: none;">
+                <div class="section-header">
+                    <h2>Menu Management</h2>
+                    <button class="btn btn-primary" onclick="openAddModal()">+ Add Item</button>
+                </div>
+                <div id="admin-menu-list" class="grid grid-3"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="add-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 16px;">Add New Food Item</h3>
+            <form onsubmit="handleAddItem(event)">
+                <div class="form-group">
+                    <label class="form-label">Restaurant</label>
+                    <select id="new-item-rest" class="form-input"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" id="new-item-name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Price</label>
+                    <input type="number" id="new-item-price" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Image URL</label>
+                    <input type="url" id="new-item-image" class="form-input" placeholder="https://..."
+                        value="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="scripts/data.js"></script>
+    <script>
+        // Auth Check
+        const user = Data.getUser();
+        if (!user || user.role !== 'admin') {
+            window.location.href = 'login.html';
+        }
+
+        // Tabs
+        function showTab(tab) {
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('orders-tab').style.display = tab === 'orders' ? 'block' : 'none';
+            document.getElementById('menu-tab').style.display = tab === 'menu' ? 'block' : 'none';
+        }
+
+        // Render Orders
+        function renderOrders() {
+            const orders = Data.getOrders();
+            const list = document.getElementById('admin-orders-list');
+
+            list.innerHTML = orders.map(order => `
+                <div class="card" style="padding: 16px; margin-bottom: 16px; border-left: 4px solid ${order.status === 'Pending' ? 'var(--primary-color)' : 'var(--success-color)'}">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h4>Order #${order.id}</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">From: ${order.user}</p>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Total: ₹${order.total}</p>
+                        </div>
+                        <div>
+                            <span class="badge" style="background: ${order.status === 'Pending' ? '#fff3e0' : '#e8f5e9'}; color: ${order.status === 'Pending' ? '#f57c00' : '#2e7d32'};">${order.status}</span>
+                            ${order.status === 'Pending' ? `<button onclick="updateStatus('${order.id}', 'Delivered')" class="btn btn-primary" style="padding: 4px 8px; font-size: 0.8rem; margin-left: 8px;">Mark Delivered</button>` : ''}
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px; font-size: 0.9rem; color: #666;">
+                        ${order.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStatus(oid, status) {
+            const orders = Data.getOrders();
+            const order = orders.find(o => o.id === oid);
+            if (order) {
+                order.status = status;
+                localStorage.setItem('orders', JSON.stringify(orders));
+                renderOrders();
+            }
+        }
+
+        // Render Menu
+        function renderMenu() {
+            const restaurants = Data.getRestaurants();
+            const list = document.getElementById('admin-menu-list');
+
+            // Flatten items with restaurant info
+            let allItems = [];
+            restaurants.forEach(r => {
+                r.items.forEach(i => allItems.push({ ...i, restName: r.name, restId: r.id }));
+            });
+
+            list.innerHTML = allItems.map(item => `
+                <div class="card" style="padding: 16px;">
+                    <div style="display: flex; gap: 12px;">
+                        <img src="${item.image}" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
+                        <div>
+                            <h4>${item.name}</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">${item.restName}</p>
+                            <p style="font-weight: 600;">₹${item.price}</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteItem('${item.restId}', '${item.id}')" class="btn btn-secondary" style="width: 100%; margin-top: 12px; color: var(--error-color);">Delete</button>
+                </div>
+            `).join('');
+
+            // Populate select
+            const select = document.getElementById('new-item-rest');
+            select.innerHTML = restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+        }
+
+        function deleteItem(rid, itemId) {
+            if (!confirm('Delete this item?')) return;
+            const restaurants = Data.getRestaurants();
+            const r = restaurants.find(x => x.id === rid);
+            if (r) {
+                r.items = r.items.filter(i => i.id !== itemId);
+                localStorage.setItem('restaurants', JSON.stringify(restaurants));
+                renderMenu();
+            }
+        }
+
+        // Modal Logic
+        function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
+        function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
+
+        function handleAddItem(e) {
+            e.preventDefault();
+            const rid = document.getElementById('new-item-rest').value;
+            const name = document.getElementById('new-item-name').value;
+            const price = parseInt(document.getElementById('new-item-price').value);
+            const image = document.getElementById('new-item-image').value;
+
+            const restaurants = Data.getRestaurants();
+            const r = restaurants.find(x => x.id === rid);
+            if (r) {
+                const newItem = {
+                    id: 'f' + Date.now(),
+                    name,
+                    price,
+                    desc: 'Freshly added item',
+                    image
+                };
+                r.items.push(newItem);
+                localStorage.setItem('restaurants', JSON.stringify(restaurants));
+                closeAddModal();
+                renderMenu();
+                e.target.reset();
+            }
+        }
+
+        renderOrders();
+        renderMenu();
+    </script>
+</body>
+
+</html>

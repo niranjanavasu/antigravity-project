@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - FoodDelivery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .order-card {
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .order-header {
+            background: #fdfdfd;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .order-status {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-Pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status-Delivered {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <span style="font-size: 2rem;">🍔</span> FoodDelivery
+            </a>
+            <div class="nav-links">
+                <!-- Injected by app.js -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="container" style="max-width: 800px; margin-top: 40px;">
+        <h2 style="margin-bottom: 24px;">My Orders</h2>
+        <div id="orders-list">
+            <!-- Orders injected here -->
+        </div>
+    </main>
+
+    <script src="scripts/data.js"></script>
+    <script src="scripts/app.js"></script>
+    <script>
+        const user = Data.getUser();
+        if (!user) window.location.href = 'login.html';
+
+        const orders = Data.getOrders().filter(o => o.user === user.name);
+
+        if (orders.length === 0) {
+            document.getElementById('orders-list').innerHTML = '<p style="color: var(--text-secondary);">No past orders found.</p>';
+        } else {
+            document.getElementById('orders-list').innerHTML = orders.map(order => `
+                <div class="card order-card">
+                    <div class="order-header">
+                        <div>
+                            <div style="font-weight: 600;">${order.id}</div>
+                            <div style="font-size: 0.9rem; color: var(--text-secondary);">${order.date}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="order-status status-${order.status}">${order.status}</span>
+                            <div style="margin-top: 4px; font-weight: 600;">Total: ₹${order.total}</div>
+                        </div>
+                    </div>
+                    <div style="padding: 16px;">
+                        ${order.items.map(item => `
+                            <div style="display: flex; gap: 12px; margin-bottom: 8px; font-size: 0.95rem;">
+                                <span style="color: var(--text-secondary);">${item.qty}x</span>
+                                <span>${item.name}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+
+</html>

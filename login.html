@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - FoodDelivery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .auth-container {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 32px;
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+
+        .auth-container h2 {
+            margin-bottom: 24px;
+            color: var(--primary-color);
+        }
+
+        .role-switch {
+            display: flex;
+            background: #eee;
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 24px;
+        }
+
+        .role-switch button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .role-switch button.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="index.html" class="logo">
+                <span style="font-size: 2rem;">🍔</span> FoodDelivery
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="auth-container">
+            <h2>Login</h2>
+            <div class="role-switch">
+                <button type="button" class="active" onclick="setRole('user')">User</button>
+                <button type="button" onclick="setRole('admin')">Admin</button>
+            </div>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" style="text-align: left;">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="Enter username" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="text-align: left;">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+            <p style="margin-top: 16px; font-size: 0.9rem; color: var(--text-secondary);">
+                Admin? Use <b>admin</b> / <b>admin</b>
+            </p>
+        </div>
+    </div>
+
+    <script src="scripts/data.js"></script>
+    <script src="scripts/app.js"></script>
+    <script>
+        let currentRole = 'user';
+
+        function setRole(role) {
+            currentRole = role;
+            document.querySelectorAll('.role-switch button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Simple validation
+            if (currentRole === 'admin') {
+                if (username === 'admin' && password === 'admin') {
+                    Data.login(username, password);
+                    window.location.href = 'admin.html';
+                } else {
+                    alert('Invalid Admin Credentials');
+                }
+            } else {
+                // Allow any user login
+                Data.login(username, password);
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+
+</html>
